@@ -3,3 +3,6 @@ venv
 
 # static file
 app/static
+
+# python
+*.pyc

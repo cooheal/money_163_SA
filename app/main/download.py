@@ -2,48 +2,49 @@
 import urllib2
 import re
 import csv
-def download_page(url):
-	headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'}
-	request=urllib2.Request(url,headers=headers)
-	try:
-		html=urllib2.urlopen(request).read()
-	except urllib2.URLError as e:
-		#print 'Download error',e.reason
-		html=None
-	return html
 
-def link_crawler(seed_url,link_regex_large,link_regex_small,max_depth=3):
-	'Crawl from the given seed URL following links matchedly by link_regex'
-	crawl_queue=[seed_url]
-	seen={seed_url:0}
-	#result_link=set()
-	i=1
-	csvFile=open('D:/Work/Projects/realestate/app/static/163_money.csv','wb')
-	try:
-		writer=csv.writer(csvFile)
-		while  crawl_queue:
-			url=crawl_queue.pop()
-			depth=seen[url]
-			if depth!=max_depth:
-				html=download_page(url)
-				if html:
-					links=re.findall(link_regex_large,html)
-					for link in links:
-						if re.match(link_regex_small,link):
-							print link
-							#result_link.add(link)
-							writer.writerow((i,link))
-							i+=1
-						else:
-							#if not re.match(link_regex_exclude,link):
-							if link not in seen:
-								seen[link]=depth+1
-								crawl_queue.append(link)
-	finally:
-		csvFile.close()
-	#return result_link
+DEFAULT_AGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
 
-if __name__=="__main__":
-	url='http://baidu.com'
-	print download_page(url)
-	print link_crawler()
+class Download():
+	"""download webpage form website"""
+	def __init__(self, user_agent=DEFAULT_AGENT,cache=None):
+		self.user_agent = DEFAULT_AGENT
+		self.cache=cache
+
+	def __call__(self,url):
+		result=None
+		#the search result in cache
+		if self.cache:
+			try:
+				result=self.cache[url]
+			except KeyError as e:
+				#url not in cache
+				raise
+			else:
+				if 500<=result['code']<=600:
+					# server error so ignore result from cache and re-download
+					result=None
+
+		if result is None:
+			# result was not loaded from cache so still need to download
+			headers={'User_Agent':self.user_agent}
+			result=self.download(url,headers)
+			if self.cache:
+				# save result to cache
+				self.cache[url]=result
+		return result['html']
+
+	def download(self,url,headers):
+		request=urllib2.Request(url,headers=headers)
+		try:
+			response=urllib2.urlopen(request)
+			html=response.read()
+			code=response.code
+		except urllib2.URLError as e:
+			#print 'Download error',e.reason
+			html=''
+			if hasattr(e,'code'):
+				code=e.code
+			else:
+				code=None
+		return {'html':html,'code':code}
