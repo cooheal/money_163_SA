@@ -24,7 +24,7 @@ class Download():
 				result=self.cache[url]
 			except KeyError as e:
 				#url not in cache
-				raise
+				pass
 			else:
 				if 500<=result['code']<=600:
 					# server error so ignore result from cache and re-download
@@ -35,6 +35,7 @@ class Download():
 			headers={'User_Agent':self.user_agent}
 			self.throttle.wait(url)
 			result=self.download(url,headers)
+
 			if self.cache:
 				# save result to cache
 				self.cache[url]=result
@@ -45,6 +46,7 @@ class Download():
 		try:
 			response = urllib2.urlopen(request)
 			html = response.read()
+			html=html.decode('gbk').encode('utf-8')
 			code = response.code
 		except urllib2.URLError as e:
 			#print 'Download error',e.reason
@@ -64,7 +66,6 @@ class Throttle:
 	def wait(self,url):
 		domain=urllib2.urlparse.urlparse(url).netloc
 		last_accessed=self.domains.get(domain)
-
 		if self.delay>0 and last_accessed is not None:
 			#sleep_secs=(self.delay-datetime.datetime.now-last_accessed).total_seconds()
 			sleep_secs=self.delay-(datetime.datetime.now()-last_accessed).seconds

@@ -10,6 +10,7 @@ url='http://money.163.com/'
 link_regex_large=re.compile('<a href="(http://money.163.com/.*?)"')
 link_regex_small=re.compile('http://money.163.com/'+date+'.*\.html$')
 
+
 link_crawler.link_crawler(url,link_regex_large,link_regex_small)
 
 end=datetime.datetime.now()

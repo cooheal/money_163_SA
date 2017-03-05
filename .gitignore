@@ -1,8 +1,11 @@
 # Virtual environment
 venv
 
+#mongodb file
+data
+
 # static file
 app/static
 
 # python
-*.pyc
+app/main/*.pyc

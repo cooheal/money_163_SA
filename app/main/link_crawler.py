@@ -1,13 +1,16 @@
+# -*- coding = utf-8 -*-
 import re
 import csv
+from mongo_cache import MongoCache
 from download import Download
 
 def link_crawler(seed_url,link_regex_large,link_regex_small,max_depth=1):
 	'Crawl from the given seed URL following links matchedly by link_regex'
 	crawl_queue=[seed_url]
 	seen={seed_url:0}
-	#result_link=set()
-	D=Download()
+
+	cache=MongoCache()
+	D=Download(cache=cache)
 	i=1
 	csvFile=open('D:/Work/Projects/realestate/app/static/163_money.csv','wb')
 	try:
