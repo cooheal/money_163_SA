@@ -8,4 +8,4 @@ data
 app/static
 
 # python
-app/main/*.pyc
+*.py[cod]
